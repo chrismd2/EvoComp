@@ -62,7 +62,7 @@ string crossover(string _a, string _b){
     int a = binToHex(strToInt(_a));
     int b = binToHex(strToInt(_b));
     int offspring;
-    offspring = a&b;
+    offspring = a|b;
     string offstring = hexToBinStr(offspring);
     return offstring;
 }

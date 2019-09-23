@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <cstdlib>
 /**
 @file Main
@@ -9,6 +10,7 @@
 #include <string>
 #include <math.h>
 #include "binaryCrossover.h"
+#include "item.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -19,6 +21,16 @@ void binTester();
 int mutator(int );
 
 main(){
+    //file to array
+    dataIn.open("file.txt");
+    item array[50];
+    int inCount;
+    while(dataIn >> array[inCount].setW >> array[inCount].setV)
+    {
+       inCount++; 
+    }
+    dataIn.close();
+    
     //binTester();
     srand(time(NULL));
     int setOfIterations[10];

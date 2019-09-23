@@ -2,139 +2,94 @@
 #include <sstream>
 #include <cstdlib>
 /**
-@file TBD
+@file Main
 @author Christenson, Mark
 */
 
 #include <string>
 #include <math.h>
+#include "binaryCrossover.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 using namespace std;
 
-int CHROMOSOMELENGTH = 8;
-
-/**
-crossover crosses two binary strings together
-@pre
-@post
-*/
-string crossover(string, string);
-/**
-binTester is designed to test the binary functions
-@pre None
-@post None
-*/
 void binTester();
-
-// the rest could be considered helper functions....
-int toBinary(int);
-string binStr(int, int);
-string hexToBinStr(int);
-int strToInt(string);
-int binToHex(int);
+int mutator(int );
 
 main(){
-    binTester();
+    //binTester();
+    srand(time(NULL));
+    int setOfIterations[10];
+    for(int i = 0; i<10; i++){
+        setOfIterations[i] = mutator(10);
+    }
+
+    for(int i = 0; i<10; i++){
+        cout << i+1 << ":\t" << setOfIterations[i] << endl;
+    }
+}
+
+int mutator(int _bitCount){ /**< must have srand(time(NULL)); set*/
+    if (true){
+        int MAXBITS = 10;
+            switch(_bitCount){
+        case 10:
+            break;
+        case 0:
+            _bitCount++;
+            break;
+        default:
+            _bitCount = 10;
+        }
+    }
+
+    BinaryCrossover bin(_bitCount);
+    int a, b;
+    int n = pow(2, _bitCount);
+    int runCount = 0;
+    a = 0;
+    b = rand()%n;
+    string strA = bin.hexToBinStr(a);
+    string strB = bin.hexToBinStr(b);
+    string bitStr = "";
+    //cout << bin.crossover(strA, strB) << endl;
+    for (int i = 0; i < _bitCount; i++){
+        bitStr += "1";
+    }
+    //cout << runCount << ":" << strA << endl;
+    while (strA != bitStr){
+        strA = bin.crossover(strA, strB);
+        a = bin.binToHex(bin.strToInt(strA));
+        b = pow(2,((rand()%_bitCount-1)+1));
+        b = a^b;
+        strB = bin.hexToBinStr(b);
+        runCount++;
+        //cout << runCount << ":" << strA << endl;
+    }
+
+    return runCount;
 }
 
 void binTester() {
+    BinaryCrossover bin;
     cout << "hello world\n";
     int a = 6;      //0110
     int b = 12;     //1100
     int c = a&b;    //0100
-    cout << toBinary(a) << " AND " << toBinary(b) << " = " << toBinary(c)<< endl;      //4
+    cout << bin.toBinary(a) << " AND " << bin.toBinary(b) << " = " << bin.toBinary(c)<< endl;      //4
     for(int i = 321; i <= 321; i++){
-        cout << i << ": " << toBinary(i) << endl;// " - " << pow(10, toBinary(i)) << endl;
+        cout << i << ": " << bin.toBinary(i) << endl;// " - " << pow(10, toBinary(i)) << endl;
     }
 
-    string someStrA = hexToBinStr(a);
-    string someStrB = hexToBinStr(b);
+    string someStrA = bin.hexToBinStr(a);
+    string someStrB = bin.hexToBinStr(b);
     cout << someStrA << endl;
-    cout << strToInt(someStrA) << endl;
+    cout << bin.strToInt(someStrA) << endl;
 
-    cout << binToHex(strToInt(someStrA)) << endl;
+    cout << bin.binToHex(bin.strToInt(someStrA)) << endl;
     string offspring;
-    offspring = crossover(someStrA, someStrB);;
+    offspring = bin.crossover(someStrA, someStrB);;
     cout << offspring << endl;
-}
-
-string crossover(string _a, string _b){
-    int a = binToHex(strToInt(_a));
-    int b = binToHex(strToInt(_b));
-    int offspring;
-    offspring = a|b;
-    string offstring = hexToBinStr(offspring);
-    return offstring;
-}
-
-int binToHex(int _input){
-    int input = _input;
-    int returnInt = 0;
-    int i = 0;
-    while (input > 0){
-        if (input % 10 == 1){
-            returnInt += pow(2, i);
-        }
-        input = input/10;
-        i++;
-    }
-    return returnInt;
-}
-
-int strToInt(string _input){
-    stringstream intStr;
-    int returnInt;
-    intStr << _input;
-    intStr >> returnInt;
-    return returnInt;
-}
-
-string hexToBinStr(int _input){
-    return binStr(CHROMOSOMELENGTH, toBinary(_input));
-}
-
-string binStr(int _length, int _input){
-    stringstream intStr;
-    intStr << (_input);
-    string input;
-    intStr >> input;
-    if (input.length()<_length){
-        string newStr;
-        for (int i = input.length(); i < _length; i++){
-            newStr += "0";
-        }
-        newStr += input;
-        input = newStr;
-    }
-
-    return input;
-}
-
-int toBinary(int _input){
-    int input = _input;
-    int i = 0;
-    while (input >= pow(2,i)){
-        i++;
-    }
-
-    int n = 0;
-    int m = 0;
-    int returnInt = 0;
-
-    while (input > 0 && i >=0){
-        n = pow(2,i);
-        if(input/n == 1){
-            m = pow(10, i);
-            if(m % 9 == 0)  //I'm not sure why, but this program does not like
-                            //4's and it shorts me one decimal value and leaves it with a multiple of nine
-            {
-                m++;
-            }
-            returnInt += m;
-            input -= n;
-        }
-        i--;
-    }
-
-    return returnInt;
 }

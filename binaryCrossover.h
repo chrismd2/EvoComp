@@ -55,9 +55,9 @@ public:
     */
     string binStr(int, int);
     /**
-    converts a hexadecimal integer to a binary string
-    @pre must be given a hexadecimal integer
-    @post a binary string is returned representing a binary number
+    converts a hex int to a binary int
+    @pre must be given a hex int to process
+    @post an integer representing a binary string is returned
     */
     string hexToBinStr(int);
     /**

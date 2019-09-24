@@ -62,17 +62,23 @@ main(){
     str = "";
     stringstream intStr;
     long unsigned int bit = 0;
-    string chromosome = "";
+    string chromosome[9] = "";
     srand(time(NULL));
+    int i = 0;
     while (inCount < totalItems){
-        bit = bit*10;
-        bit += rand()%2;
-        cout << bit << endl;
-        intStr << bit;
-        intStr >> str;
-        chromosome += str;
-        //cout << chromosome << endl;
-        inCount++;
+        while(chromosome[i].length() < 10)
+        {
+            bit = bit * 10;
+            bit += rand()%2;
+            //cout << bit << endl;
+            intStr << bit;
+            intStr >> str;
+            chromosome[i] = bin.binStr(9, bit);
+            cout << chromosome[i] << endl;
+            inCount++;
+        }
+        bit = 0;
+        i++;
     }
 
     /*

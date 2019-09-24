@@ -22,11 +22,13 @@ int mutator(int );
 
 main(){
     //file to array
-    fstream dataIn("file.txt", ios::in);
-    int totalItems = 5;
+    fstream dataIn("items.txt", ios::in);
+    int totalItems = 90;
     //dataIn.open(); // Link to kp files: http://people.brunel.ac.uk/~mastjjb/jeb/orlib/files/
     item itemOptions[totalItems];
+
     int inCount = 0;
+
     /*
     while(dataIn >> array[inCount].setW >> array[inCount].setV)
     {
@@ -37,29 +39,52 @@ main(){
     string str;
 
     BinaryCrossover bin;
-    while(inCount < totalItems)
+
+    while(dataIn.peek() != '.')
     {
-        getline(dataIn, str, '.');
+        getline(dataIn, str);
         itemOptions[inCount].setW(bin.strToInt(str));
-        getline(dataIn, str, ' ');
-        itemOptions[inCount].setV(bin.strToInt(str));
         inCount++;
-        getline(dataIn, str, '.');
-        itemOptions[inCount].setW(bin.strToInt(str));
+    }
+
+    inCount = 0;
+
+    while(dataIn.peek() != EOF)
+    {
         getline(dataIn, str);
         itemOptions[inCount].setV(bin.strToInt(str));
-        inCount++;
-        dataIn.seekp(0, ios::beg);
-    }
-    inCount = 0;
-    while(inCount < totalItems){
-        cout << itemOptions[inCount].getW() << " " << itemOptions[inCount].getV() << endl;
         inCount++;
     }
 
     dataIn.close();
 
+    inCount = 0;
+    str = "";
+    stringstream intStr;
+    long unsigned int bit = 0;
+    string chromosome = "";
+    srand(time(NULL));
+    while (inCount < totalItems){
+        bit = bit*10;
+        bit += rand()%2;
+        cout << bit << endl;
+        intStr << bit;
+        intStr >> str;
+        chromosome += str;
+        //cout << chromosome << endl;
+        inCount++;
+    }
+
+    /*
+    */
+    while(inCount < totalItems){
+        cout << itemOptions[inCount].getW() << " " << itemOptions[inCount].getV() << endl;
+        inCount++;
+    }
+
+
     //binTester();
+    /*
     srand(time(NULL));
     int setOfIterations[10];
     for(int i = 0; i<10; i++){
@@ -69,6 +94,7 @@ main(){
     for(int i = 0; i<10; i++){
         cout << i+1 << ":\t" << setOfIterations[i] << endl;
     }
+    */
 }
 
 int mutator(int _bitCount){ /**< must have srand(time(NULL)); set*/

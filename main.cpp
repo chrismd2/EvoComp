@@ -4,7 +4,7 @@
 #include <cstdlib>
 /**
 @file Main
-@author Christenson, Mark
+@author Christenson, Mark; Smith, Daniel
 */
 
 #include <string>
@@ -22,15 +22,43 @@ int mutator(int );
 
 main(){
     //file to array
-    dataIn.open("file.txt");
-    item array[50];
-    int inCount;
+    fstream dataIn("file.txt", ios::in);
+    int totalItems = 5;
+    //dataIn.open(); // Link to kp files: http://people.brunel.ac.uk/~mastjjb/jeb/orlib/files/
+    item itemOptions[totalItems];
+    int inCount = 0;
+    /*
     while(dataIn >> array[inCount].setW >> array[inCount].setV)
     {
-       inCount++; 
+       inCount++;
     }
+    */
+
+    string str;
+
+    BinaryCrossover bin;
+    while(inCount < totalItems)
+    {
+        getline(dataIn, str, '.');
+        itemOptions[inCount].setW(bin.strToInt(str));
+        getline(dataIn, str, ' ');
+        itemOptions[inCount].setV(bin.strToInt(str));
+        inCount++;
+        getline(dataIn, str, '.');
+        itemOptions[inCount].setW(bin.strToInt(str));
+        getline(dataIn, str);
+        itemOptions[inCount].setV(bin.strToInt(str));
+        inCount++;
+        dataIn.seekp(0, ios::beg);
+    }
+    inCount = 0;
+    while(inCount < totalItems){
+        cout << itemOptions[inCount].getW() << " " << itemOptions[inCount].getV() << endl;
+        inCount++;
+    }
+
     dataIn.close();
-    
+
     //binTester();
     srand(time(NULL));
     int setOfIterations[10];

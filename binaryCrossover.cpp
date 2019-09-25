@@ -24,7 +24,18 @@ string BinaryCrossover::crossover(string _a, string _b){
     int b = binToHex(strToInt(_b));
     int offspring;
     offspring = a|b;
-    string offstring = hexToBinStr(offspring);
+    string offstring = "";//= hexToBinStr(offspring);
+    string strA, strB;
+
+    for(int i = 0; i < _a.length(); i++){
+        strA = _a[i];
+        strB = _b[i];
+        a = binToHex(strToInt(strA));
+        b = binToHex(strToInt(strB));
+        offspring = a|b;
+        offstring += binStr(1, offspring);
+    }
+
     return offstring;
 }
 

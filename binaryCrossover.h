@@ -4,7 +4,6 @@
 */
 
 #ifndef BINARYCROSSOVER_H
-#ifndef BINARYCROSSOVER_H
 #define BINARYCROSSOVER_H
 #include <iostream>
 #include <sstream>
@@ -48,10 +47,9 @@ public:
     */
     int toBinary(int);
     /**
-    converts an int to a string
-    @pre must be given an int for length and must be given an int to process
-    @post a string will be returned representing the provided int and will have
-            leading 0 characters to fill the string length
+    converts a hex int to a binary int
+    @pre must be given a hex int to process
+    @post an integer representing a binary string is returned
     */
     string binStr(int, int);
     /**

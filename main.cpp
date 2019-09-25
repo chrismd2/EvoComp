@@ -19,88 +19,99 @@ using namespace std;
 
 void binTester();
 int mutator(int );
+string newCrossoverTester();
 
 main(){
-    //file to array
     fstream dataIn("items.txt", ios::in);
     int totalItems = 90;
-    //dataIn.open(); // Link to kp files: http://people.brunel.ac.uk/~mastjjb/jeb/orlib/files/
     item itemOptions[totalItems];
-
     int inCount = 0;
-
-    /*
-    while(dataIn >> array[inCount].setW >> array[inCount].setV)
-    {
-       inCount++;
-    }
-    */
-
     string str;
-
     BinaryCrossover bin;
-
     while(dataIn.peek() != '.')
     {
         getline(dataIn, str);
         itemOptions[inCount].setW(bin.strToInt(str));
+        if(itemOptions[inCount].getW() == 0){
+            itemOptions[inCount].setW(1);
+        }
         inCount++;
     }
-
     inCount = 0;
-
     while(dataIn.peek() != EOF)
     {
         getline(dataIn, str);
         itemOptions[inCount].setV(bin.strToInt(str));
         inCount++;
     }
-
     dataIn.close();
 
     inCount = 0;
     str = "";
-    stringstream intStr;
-    long unsigned int bit = 0;
-    string chromosome[9] = "";
     srand(time(NULL));
-    int i = 0;
-    while (inCount < totalItems){
-        while(chromosome[i].length() < 10)
-        {
-            bit = bit * 10;
-            bit += rand()%2;
-            //cout << bit << endl;
-            intStr << bit;
-            intStr >> str;
-            chromosome[i] = bin.binStr(9, bit);
-            cout << chromosome[i] << endl;
-            inCount++;
+
+    for(int i = 0; i < totalItems; i++){
+        //cout << chromosome[i];
+        if(i == totalItems - 1){
+            //cout << endl << i << endl;
         }
-        bit = 0;
-        i++;
     }
 
-    /*
-    */
+    cout << "These UNIQUE strings are OR'ed together\n";
+    string chromosome = newCrossoverTester();
+
+
+    cout << "\nThese are all the items\n";
     while(inCount < totalItems){
         cout << itemOptions[inCount].getW() << " " << itemOptions[inCount].getV() << endl;
         inCount++;
     }
 
+    int bagWeight = 0;
+    int bagMax = 50;
+    int bagValue = 0;
+    for(int i = 0; i < totalItems; i++){
+            if(bagWeight + itemOptions[i].getW() <= bagMax && chromosome[i] == '1'){
+                bagWeight += itemOptions[i].getW();
+                bagValue += itemOptions[i].getV();
+            }
+        }
+    cout << "Bag Weight: " << bagWeight << "\nBag Value: " << bagValue << endl;
+/*
+example run values
+6720
+10950
+17280
+*/
+}
 
-    //binTester();
-    /*
-    srand(time(NULL));
-    int setOfIterations[10];
-    for(int i = 0; i<10; i++){
-        setOfIterations[i] = mutator(10);
-    }
+string newCrossoverTester(){
+    int totalItems = 90;
+    BinaryCrossover bin;
+    stringstream intStr;
+    long unsigned int bit = 0;
+    int chromosomeCount = 2;
+    string chromosome[chromosomeCount] = "";
 
-    for(int i = 0; i<10; i++){
-        cout << i+1 << ":\t" << setOfIterations[i] << endl;
+
+    for (int j = 0; j < chromosomeCount; j++)
+    {
+        for(int i = 0; i < totalItems; i++){
+            switch(rand()%2){
+            case 0:
+                chromosome[j] += "0";
+                break;
+            case 1:
+                chromosome[j] += "1";
+                break;
+            }
+        }
     }
-    */
+    cout << chromosome[0] << endl << chromosome[1] << endl;
+
+    cout << bin.crossover(chromosome[0], chromosome[1]);
+
+    return chromosome[0];
 }
 
 int mutator(int _bitCount){ /**< must have srand(time(NULL)); set*/

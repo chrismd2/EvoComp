@@ -1,17 +1,17 @@
 #include "item.h"
 
-item::item(float initial_w, float initial_v)
+item::item(int initial_w, int initial_v)
 {
 	weight = initial_w;
 	value = initial_v;
 }
 
-void item::setW(float w)
+void item::setW(int w)
 {
 	weight = w;
 }
 
-void item::setV(float v)
+void item::setV(int v)
 {
 	value = v;
 }

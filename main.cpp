@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "bag.h"
 
 using namespace std;
 
@@ -21,19 +22,31 @@ void binTester();
 int mutator(int );
 string newCrossoverTester();
 
-main(){
+int main(){
     fstream dataIn("items.txt", ios::in);
-    int totalItems = 90;
+    const int totalItems = 90;
     item itemOptions[totalItems];
     int inCount = 0;
     string str;
     BinaryCrossover bin;
+	const int totalBags = 10;
+	bag knapsacks[totalBags];
+
+	while (dataIn.peek() != '.')
+	{
+		getline(dataIn, str);
+		knapsacks[inCount].setBagMax(bin.strToInt(str));
+		
+		inCount++;
+	}
+	inCount = 0;
+
     while(dataIn.peek() != '.')
     {
         getline(dataIn, str);
         itemOptions[inCount].setW(bin.strToInt(str));
         if(itemOptions[inCount].getW() == 0){
-            itemOptions[inCount].setW(1);
+            itemOptions[inCount].setW(0);
         }
         inCount++;
     }
@@ -67,16 +80,16 @@ main(){
         inCount++;
     }
 
-    int bagWeight = 0;
-    int bagMax = 50;
-    int bagValue = 0;
-    for(int i = 0; i < totalItems; i++){
-            if(bagWeight + itemOptions[i].getW() <= bagMax && chromosome[i] == '1'){
-                bagWeight += itemOptions[i].getW();
-                bagValue += itemOptions[i].getV();
-            }
-        }
-    cout << "Bag Weight: " << bagWeight << "\nBag Value: " << bagValue << endl;
+	for (int j = 0; j < totalBags; j++)
+	{
+		for (int i = 0; i < totalItems; i++) {
+			if (chromosome[i] == '1' && knapsacks[j].getBagWeight() + itemOptions[i].getW() <= knapsacks[j].getBagMax()) {
+				knapsacks[j].setBagWeight(knapsacks[j].getBagWeight() + itemOptions[i].getW());
+				knapsacks[j].setBagValue(knapsacks[j].getBagValue() + itemOptions[i].getV());
+			}
+		}
+		cout << "Bag Weight: " << knapsacks[j].getBagWeight() << "\nBag Value: " << knapsacks[j].getBagValue() << endl;
+	}
 /*
 example run values
 6720
@@ -90,8 +103,8 @@ string newCrossoverTester(){
     BinaryCrossover bin;
     stringstream intStr;
     long unsigned int bit = 0;
-    int chromosomeCount = 2;
-    string chromosome[chromosomeCount] = "";
+    const int chromosomeCount = 2;
+	string chromosome[chromosomeCount] = {};
 
 
     for (int j = 0; j < chromosomeCount; j++)

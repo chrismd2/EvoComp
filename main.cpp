@@ -14,20 +14,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "bag.h"
 
 using namespace std;
 
-void binTester();
-int mutator(int );
-string newCrossoverTester();
+void mutator(string * , int , int , bag * , item * );
+void chromosomeEvolution(string *, int, bag*, int, item*);
+string chromosomeMaker(int);
+void fixer(bag*, string*, int, int, item*);
+void crossBagFixer(bag*, string*, int, int, item*);
+void addItem(bag*, string*, int, int, item*);
+void removeItem(bag*, string*, int, int, item*);
 
-main(){
+int main(){
     fstream dataIn("items.txt", ios::in);
-    int totalItems = 90;
+    const int totalItems = 90;
     item itemOptions[totalItems];
     int inCount = 0;
     string str;
     BinaryCrossover bin;
+	const int totalBags = 10;
+	bag knapsacks[totalBags];
+
+	while (dataIn.peek() != '.')
+	{
+		getline(dataIn, str);
+		knapsacks[inCount].setBagMax(bin.strToInt(str));
+
+		inCount++;
+	}
+	inCount = 0;
+
+	//This if statement is to consume the period
+	if(dataIn.peek() == '.'){
+        getline(dataIn, str);
+	}
+
+	//This while loop is for weight
     while(dataIn.peek() != '.')
     {
         getline(dataIn, str);
@@ -37,11 +60,21 @@ main(){
         }
         inCount++;
     }
+
+	//This if statement is to consume the period
+	if(dataIn.peek() == '.'){
+        getline(dataIn, str);
+	}
     inCount = 0;
+
+    //This while loop is for value
     while(dataIn.peek() != EOF)
     {
         getline(dataIn, str);
         itemOptions[inCount].setV(bin.strToInt(str));
+        if(itemOptions[inCount].getV() == 0){
+            itemOptions[inCount].setV(1);
+        }
         inCount++;
     }
     dataIn.close();
@@ -50,71 +83,288 @@ main(){
     str = "";
     srand(time(NULL));
 
-    for(int i = 0; i < totalItems; i++){
-        //cout << chromosome[i];
-        if(i == totalItems - 1){
-            //cout << endl << i << endl;
+    string chromosome[totalBags] = "";
+
+	int chrsIndex = 0;
+	int knapsackIndex = 0;
+	bool inABag = false;
+
+	while(knapsackIndex == 0 && chromosome[knapsackIndex].length() < totalItems){
+        if (itemOptions[chrsIndex].getW()<=(knapsacks[knapsackIndex].getBagMax() - knapsacks[knapsackIndex].getBagWeight())){
+            knapsacks[knapsackIndex].setBagWeight(knapsacks[knapsackIndex].getBagWeight()+itemOptions[chrsIndex].getW());
+            knapsacks[knapsackIndex].setBagValue(knapsacks[knapsackIndex].getBagValue()+itemOptions[chrsIndex].getV());
+            chromosome[knapsackIndex] += '1';
         }
-    }
 
-    cout << "These UNIQUE strings are OR'ed together\n";
-    string chromosome = newCrossoverTester();
+        else{
+            chromosome[knapsackIndex] += '0';
+        }
+        chrsIndex++;
+	}
 
+	knapsackIndex++;
+	chrsIndex = 0;
 
-    cout << "\nThese are all the items\n";
-    while(inCount < totalItems){
-        cout << itemOptions[inCount].getW() << " " << itemOptions[inCount].getV() << endl;
-        inCount++;
-    }
-
-    int bagWeight = 0;
-    int bagMax = 50;
-    int bagValue = 0;
-    for(int i = 0; i < totalItems; i++){
-            if(bagWeight + itemOptions[i].getW() <= bagMax && chromosome[i] == '1'){
-                bagWeight += itemOptions[i].getW();
-                bagValue += itemOptions[i].getV();
+	bool isInBag = false;
+	while(knapsackIndex < totalBags){
+        while(chromosome[knapsackIndex].length()<totalItems){
+            for(int i = 0; i < knapsackIndex; i++){
+                if(chromosome[i][chrsIndex] == '1'){
+                    isInBag = true;
+                }
             }
+            if (!isInBag && itemOptions[chrsIndex].getW()<=(knapsacks[knapsackIndex].getBagMax() - knapsacks[knapsackIndex].getBagWeight())){
+                knapsacks[knapsackIndex].setBagWeight(knapsacks[knapsackIndex].getBagWeight()+itemOptions[chrsIndex].getW());
+                knapsacks[knapsackIndex].setBagValue(knapsacks[knapsackIndex].getBagValue()+itemOptions[chrsIndex].getV());
+                chromosome[knapsackIndex] += '1';
+            }
+            else{
+                chromosome[knapsackIndex] += '0';
+            }
+            isInBag = false;
+            chrsIndex++;
         }
-    cout << "Bag Weight: " << bagWeight << "\nBag Value: " << bagValue << endl;
-/*
-example run values
-6720
-10950
-17280
+        chrsIndex = 0;
+        knapsackIndex++;
+	}
+
+	crossBagFixer(knapsacks, chromosome, totalBags, totalItems, itemOptions);
+
+	cout << "BAG#\t\t\tCHROMOSOME\t\t\t\t\t\t\t\t VALUE\tWEIGHT\tMAX\n";
+	for(int i = 0; i < totalBags; i++){
+        cout << "KP " << i + 1 << ": " << chromosome[i] << " " << knapsacks[i].getBagValue() << "\t" << knapsacks[i].getBagWeight() << "\t" << knapsacks[i].getBagMax() << endl;// " " << chromosome[i].length() << " " << totalItems << endl;
+	}
+	cout << endl;
+
+	int m,n;
+	for(int i = 0; i < 1000; i++){
+        m = rand()%totalBags;
+        n = rand()%totalItems;
+        removeItem(knapsacks, chromosome, m, n, itemOptions);
+	}
+
+	/*
+	cout << "BAG#\t\t\tCHROMOSOME\t\t\t\t\t\t\t\t VALUE\tWEIGHT\tMAX\n";
+	for(int i = 0; i < totalBags; i++){
+        cout << "KP " << i + 1 << ": " << chromosome[i] << " " << knapsacks[i].getBagValue() << "\t" << knapsacks[i].getBagWeight() << "\t" << knapsacks[i].getBagMax() << endl;// " " << chromosome[i].length() << " " << totalItems << endl;
+	}
+	cout << endl;
 */
+	for(int i = 0; i < 1000; i++){
+        chromosomeEvolution(chromosome, totalItems, knapsacks, totalBags, itemOptions);
+	}
+
+	cout << "BAG#\t\t\tCHROMOSOME\t\t\t\t\t\t\t\t VALUE\tWEIGHT\tMAX\n";
+	for(int i = 0; i < totalBags; i++){
+        cout << "KP " << i + 1 << ": " << chromosome[i] << " " << knapsacks[i].getBagValue() << "\t" << knapsacks[i].getBagWeight() << "\t" << knapsacks[i].getBagMax() << endl;// " " << chromosome[i].length() << " " << totalItems << endl;
+	}
+	cout << endl;
+/*
+	*/
+	return 0;
 }
 
-string newCrossoverTester(){
-    int totalItems = 90;
-    BinaryCrossover bin;
-    stringstream intStr;
-    long unsigned int bit = 0;
-    int chromosomeCount = 2;
-    string chromosome[chromosomeCount] = "";
 
+void chromosomeEvolution(string * _chromosome, int _totalItems, bag * knapsacks, int _totalBags, item* itemOptions){
+    int bagNum = rand()%_totalBags;
+    BinaryCrossover bin(_totalItems);
+    string oldChrs[1] = _chromosome[bagNum];
+    string newChrs[1] = bin.crossover(_chromosome[bagNum], chromosomeMaker(_totalItems));
+    bag aBag[1];
+    aBag[0].setBagMax(knapsacks[bagNum].getBagMax());
 
-    for (int j = 0; j < chromosomeCount; j++)
-    {
-        for(int i = 0; i < totalItems; i++){
-            switch(rand()%2){
-            case 0:
-                chromosome[j] += "0";
-                break;
-            case 1:
-                chromosome[j] += "1";
-                break;
-            }
+    for(int i = 0; i < _totalItems; i++){
+        if(newChrs[0][i] == '1'){
+            aBag[0].setBagValue(aBag[0].getBagValue() + itemOptions[i].getV());
+            aBag[0].setBagWeight(aBag[0].getBagWeight() + itemOptions[i].getW());
+            //cout << aBag[0].getBagWeight()<< " " << aBag[0].getBagValue() << endl;
         }
     }
-    cout << chromosome[0] << endl << chromosome[1] << endl;
 
-    cout << bin.crossover(chromosome[0], chromosome[1]);
+    crossBagFixer(aBag, newChrs, 1, _totalItems,  itemOptions);
+    /*cout << bagNum+1    << ": " << aBag[0].getBagValue()
+                        << " " << aBag[0].getBagWeight()
+                        << " " << aBag[0].getBagMax()
+                        << " " << newChrs[0] << endl;*/
 
-    return chromosome[0];
+    if(knapsacks[bagNum].getBagValue() < aBag[0].getBagValue())
+    {
+        knapsacks[bagNum].setBagValue(aBag[0].getBagValue());
+        knapsacks[bagNum].setBagWeight(aBag[0].getBagWeight());
+        _chromosome[bagNum] = newChrs[0];
+    }
+
+    crossBagFixer(aBag, newChrs, 1, _totalItems,  itemOptions);
+
+    /*aBag[0].setBagMax(knapsacks[bagNum].getBagMax());
+    aBag[0].setBagValue(knapsacks[bagNum].getBagValue());
+    aBag[0].setBagWeight(knapsacks[bagNum].getBagWeight());
+    cout << aBag[0].getBagValue() << " " << aBag[0].getBagWeight() << endl;
+    //cout << newChrs[0] <<endl;
+    for(int i = 0; i < _totalItems; i++){
+        if(newChrs[0][i] == '1'){
+            knapsacks[bagNum].setBagValue(knapsacks[bagNum].getBagValue() + itemOptions[i].getV());
+            knapsacks[bagNum].setBagWeight(knapsacks[bagNum].getBagWeight() + itemOptions[i].getW());
+            //cout << aBag[0].getBagWeight()<< " " << aBag[0].getBagValue() << endl;
+        }
+    }
+
+    _chromosome[bagNum] = newChrs[0];
+    crossBagFixer(knapsacks, _chromosome, _totalBags, _totalItems,  itemOptions);
+    cout << bagNum+1  << ": " << _chromosome[bagNum] << " " << knapsacks[bagNum].getBagValue()
+                        << " " << knapsacks[bagNum].getBagWeight()
+                        << " " << knapsacks[bagNum].getBagMax()<<endl;
+    if(knapsacks[bagNum].getBagValue()<aBag[0].getBagValue())
+    {
+        knapsacks[bagNum] = aBag[0];
+        _chromosome[bagNum] = oldChrs[0];
+    }*/
+    //cout << aBag[0].getBagMax() << " " << aBag[0].getBagWeight() << " "  << aBag[0].getBagValue()<< endl;
+    //cout << newChrs[0] <<endl;
+    //cout << aBag[0].getBagMax() << " " << aBag[0].getBagWeight() << " "  << aBag[0].getBagValue()<< endl;
 }
 
-int mutator(int _bitCount){ /**< must have srand(time(NULL)); set*/
+void addItem(bag * knapsacks, string * _chromosome, int _bagNum, int _itemNum, item* _itemOptions){
+    if(_chromosome[_bagNum][_itemNum]=='0'){
+        _chromosome[_bagNum][_itemNum]=='1';
+        knapsacks[_bagNum].setBagWeight(knapsacks[_bagNum].getBagWeight()+_itemOptions[_itemNum].getW());
+        knapsacks[_bagNum].setBagValue(knapsacks[_bagNum].getBagValue()+_itemOptions[_itemNum].getV());
+    }
+    else{//cout<<"\n\nItem is already in the bag.\n\n";
+    }
+}
+
+void removeItem(bag * knapsacks, string * _chromosome, int _bagNum, int _itemNum, item* _itemOptions){
+    //_bagNum--;
+    //_itemNum--;
+    if(_chromosome[_bagNum][_itemNum]=='1'){
+        //cout << "CHRS" << _chromosome[_bagNum] << " A" << _itemNum << endl;
+        _chromosome[_bagNum][_itemNum]='0';
+        // << "CHRS" << _chromosome[_bagNum] << " B" << endl;
+        knapsacks[_bagNum].setBagWeight(knapsacks[_bagNum].getBagWeight()-_itemOptions[_itemNum].getW());
+        knapsacks[_bagNum].setBagValue(knapsacks[_bagNum].getBagValue()-_itemOptions[_itemNum].getV());
+
+    }
+    else{cout<<"\n\nItem is not in the bag.\n\n";
+    }
+}
+void stringToBag(bag knapsacks, string _chromosome, int _totalItems, item* itemOptions){
+    knapsacks.setBagValue(0);
+    knapsacks.setBagWeight(0);
+    for(int i = 0; i < _totalItems; i++){
+        switch(_chromosome[i]){
+        case '1':
+            knapsacks.setBagValue(knapsacks.getBagWeight()+itemOptions[i].getV());
+            knapsacks.setBagWeight(knapsacks.getBagWeight()+itemOptions[i].getW());
+            break;
+        }
+    }
+    cout << "In stringToBag\n";
+}
+void crossBagFixer(bag * knapsacks, string * _chromosome, int _totalBags, int _totalItems, item* itemOptions){
+    for(int i = 0; i < _totalBags; i++){
+        if(i > 0){
+            for(int j = 0; j < _totalItems; j++){
+                for(int k = 0; k < _totalBags; k++){
+                    if(_chromosome[k][j] == '1'){
+                        removeItem(knapsacks, _chromosome, i, j, itemOptions);
+                    }
+                }
+
+                if(knapsacks[i].getBagWeight() < 0 || knapsacks[i].getBagValue()< 0){
+                    cout << "\n\nLESS THAN ZERO\n\n";
+                    knapsacks[i].setBagWeight(0);
+                    knapsacks[i].setBagValue(0);
+                    _chromosome[i] = "";
+                    for(int j = 0; j< _totalItems; j++){
+                        _chromosome[i] += '0';
+                    }
+                }
+            }
+        }
+
+        int n = rand()%_totalItems;
+        string chromosome = *_chromosome;
+        bag aBag = *knapsacks;
+        bool looped = false;
+        while(knapsacks[i].getBagWeight()>knapsacks[i].getBagMax()){
+            if(_chromosome[i][n] == '1'){
+                    removeItem(knapsacks, _chromosome, i, n, itemOptions);
+            }
+/*    cout << bagNum+1    << ": " << aBag[0].getBagValue()
+                        << " " << aBag[0].getBagWeight()
+                        << " " << aBag[0].getBagMax() << endl;*/
+            else{
+                n--;
+                if(n<0){
+                    n = _totalItems;
+                    if(looped){
+                        cout << "LOOPED" << endl;
+                        knapsacks[i].setBagWeight(0);
+                        knapsacks[i].setBagValue(0);
+                    }
+                    looped = true;
+                }
+            }
+        }
+        //cout << _chromosome[i] << endl;
+
+        /**/
+    }
+}
+
+string chromosomeMaker(int _totalItems){
+    int totalItems = _totalItems;
+    BinaryCrossover bin;
+	string chromosome = {};
+
+
+    for(int i = 0; i < totalItems; i++){
+        switch(rand()%2){
+        case 0:
+            chromosome += "0";
+            break;
+        case 1:
+            chromosome += "1";
+            break;
+        }
+    }
+
+    return chromosome;
+}
+
+void mutator(string * _chromosome, int _totalBags, int _totalItems, bag * _knapsacks, item * _items){ /**< must have srand(time(NULL)); set*/
+    int bagNum = rand()%_totalBags;
+    int itemNum = rand()%_totalItems;
+    string chromosome[_totalBags] = * _chromosome;
+    int knapsacksValue = _knapsacks[bagNum].getBagValue();
+    int knapsacksWeight = _knapsacks[bagNum].getBagWeight();
+
+    switch(chromosome[bagNum][itemNum]){
+    case '1':
+        removeItem(_knapsacks, _chromosome, bagNum, itemNum, _items);
+        break;
+    case '0':
+        addItem(_knapsacks, _chromosome, bagNum, itemNum, _items);
+        break;
+    }
+
+    //fixer(knapsacks, chromosome, _totalBags, _totalItems, _items);
+
+    if(knapsacksValue >= _knapsacks[bagNum].getBagValue()){
+        //cout << _knapsacks[bagNum].getBagValue()<<endl;
+        _knapsacks[bagNum].setBagValue(knapsacksValue);
+        _knapsacks[bagNum].setBagWeight(knapsacksWeight);
+        switch(chromosome[bagNum][itemNum]){
+        case '1':
+            chromosome[bagNum][itemNum] = '0';
+            break;
+        case '0':
+            chromosome[bagNum][itemNum] = '1';
+            break;
+        }
+    }
+    /*
     if (true){
         int MAXBITS = 10;
             switch(_bitCount){
@@ -150,29 +400,7 @@ int mutator(int _bitCount){ /**< must have srand(time(NULL)); set*/
         strB = bin.hexToBinStr(b);
         runCount++;
         //cout << runCount << ":" << strA << endl;
-    }
+    }*/
 
-    return runCount;
-}
-
-void binTester() {
-    BinaryCrossover bin;
-    cout << "hello world\n";
-    int a = 6;      //0110
-    int b = 12;     //1100
-    int c = a&b;    //0100
-    cout << bin.toBinary(a) << " AND " << bin.toBinary(b) << " = " << bin.toBinary(c)<< endl;      //4
-    for(int i = 321; i <= 321; i++){
-        cout << i << ": " << bin.toBinary(i) << endl;// " - " << pow(10, toBinary(i)) << endl;
-    }
-
-    string someStrA = bin.hexToBinStr(a);
-    string someStrB = bin.hexToBinStr(b);
-    cout << someStrA << endl;
-    cout << bin.strToInt(someStrA) << endl;
-
-    cout << bin.binToHex(bin.strToInt(someStrA)) << endl;
-    string offspring;
-    offspring = bin.crossover(someStrA, someStrB);;
-    cout << offspring << endl;
+    //return runCount;
 }

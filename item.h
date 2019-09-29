@@ -14,5 +14,5 @@ class item
 		void setV(float v);
 };
 
-#include "item.cpp"
-#endif 
+//#include "item.cpp"
+#endif

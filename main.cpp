@@ -137,7 +137,7 @@ int main(){
 	cout << endl;
 
 	int m,n;
-	for(int i = 0; i < 1000; i++){
+	for(int i = 0; i < 10000; i++){
         m = rand()%totalBags;
         n = rand()%totalItems;
         removeItem(knapsacks, chromosome, m, n, itemOptions);
@@ -182,10 +182,6 @@ void chromosomeEvolution(string * _chromosome, int _totalItems, bag * knapsacks,
     }
 
     crossBagFixer(aBag, newChrs, 1, _totalItems,  itemOptions);
-    /*cout << bagNum+1    << ": " << aBag[0].getBagValue()
-                        << " " << aBag[0].getBagWeight()
-                        << " " << aBag[0].getBagMax()
-                        << " " << newChrs[0] << endl;*/
 
     if(knapsacks[bagNum].getBagValue() < aBag[0].getBagValue())
     {
@@ -195,33 +191,6 @@ void chromosomeEvolution(string * _chromosome, int _totalItems, bag * knapsacks,
     }
 
     crossBagFixer(aBag, newChrs, 1, _totalItems,  itemOptions);
-
-    /*aBag[0].setBagMax(knapsacks[bagNum].getBagMax());
-    aBag[0].setBagValue(knapsacks[bagNum].getBagValue());
-    aBag[0].setBagWeight(knapsacks[bagNum].getBagWeight());
-    cout << aBag[0].getBagValue() << " " << aBag[0].getBagWeight() << endl;
-    //cout << newChrs[0] <<endl;
-    for(int i = 0; i < _totalItems; i++){
-        if(newChrs[0][i] == '1'){
-            knapsacks[bagNum].setBagValue(knapsacks[bagNum].getBagValue() + itemOptions[i].getV());
-            knapsacks[bagNum].setBagWeight(knapsacks[bagNum].getBagWeight() + itemOptions[i].getW());
-            //cout << aBag[0].getBagWeight()<< " " << aBag[0].getBagValue() << endl;
-        }
-    }
-
-    _chromosome[bagNum] = newChrs[0];
-    crossBagFixer(knapsacks, _chromosome, _totalBags, _totalItems,  itemOptions);
-    cout << bagNum+1  << ": " << _chromosome[bagNum] << " " << knapsacks[bagNum].getBagValue()
-                        << " " << knapsacks[bagNum].getBagWeight()
-                        << " " << knapsacks[bagNum].getBagMax()<<endl;
-    if(knapsacks[bagNum].getBagValue()<aBag[0].getBagValue())
-    {
-        knapsacks[bagNum] = aBag[0];
-        _chromosome[bagNum] = oldChrs[0];
-    }*/
-    //cout << aBag[0].getBagMax() << " " << aBag[0].getBagWeight() << " "  << aBag[0].getBagValue()<< endl;
-    //cout << newChrs[0] <<endl;
-    //cout << aBag[0].getBagMax() << " " << aBag[0].getBagWeight() << " "  << aBag[0].getBagValue()<< endl;
 }
 
 void addItem(bag * knapsacks, string * _chromosome, int _bagNum, int _itemNum, item* _itemOptions){
@@ -245,7 +214,7 @@ void removeItem(bag * knapsacks, string * _chromosome, int _bagNum, int _itemNum
         knapsacks[_bagNum].setBagValue(knapsacks[_bagNum].getBagValue()-_itemOptions[_itemNum].getV());
 
     }
-    else{cout<<"\n\nItem is not in the bag.\n\n";
+    else{//cout<<"\n\nItem is not in the bag.\n\n";
     }
 }
 void stringToBag(bag knapsacks, string _chromosome, int _totalItems, item* itemOptions){
@@ -377,7 +346,6 @@ void mutator(string * _chromosome, int _totalBags, int _totalItems, bag * _knaps
             _bitCount = 10;
         }
     }
-
     BinaryCrossover bin(_bitCount);
     int a, b;
     int n = pow(2, _bitCount);

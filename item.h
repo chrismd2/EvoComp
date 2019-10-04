@@ -4,15 +4,16 @@
 class item
 {
 	private:
-		float weight;
-		float value;
+		int weight;
+		int value;
 	public:
-		item(float initial_w = 0.0, float initial_v = 0.0);
-		float getW() const { return weight; };
-		float getV() const { return value; };
-		void setW(float w);
-		void setV(float v);
+		item(int initial_w = 0.0, int initial_v = 0.0);
+		int getW() const { return weight; };
+		int getV() const { return value; };
+		void setW(int w);
+		void setV(int v);
 };
 
 //#include "item.cpp"
+
 #endif

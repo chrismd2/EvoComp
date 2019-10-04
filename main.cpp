@@ -18,6 +18,7 @@
 
 using namespace std;
 
+
 void mutator(string * , int , int , bag * , item * );
 void chromosomeEvolution(string *, int, bag*, int, item*);
 string chromosomeMaker(int);
@@ -40,7 +41,6 @@ int main(){
 	{
 		getline(dataIn, str);
 		knapsacks[inCount].setBagMax(bin.strToInt(str));
-
 		inCount++;
 	}
 	inCount = 0;
@@ -56,7 +56,7 @@ int main(){
         getline(dataIn, str);
         itemOptions[inCount].setW(bin.strToInt(str));
         if(itemOptions[inCount].getW() == 0){
-            itemOptions[inCount].setW(1);
+            itemOptions[inCount].setW(0);
         }
         inCount++;
     }
@@ -286,6 +286,7 @@ string chromosomeMaker(int _totalItems){
     int totalItems = _totalItems;
     BinaryCrossover bin;
 	string chromosome = {};
+
 
 
     for(int i = 0; i < totalItems; i++){

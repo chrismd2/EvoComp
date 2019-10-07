@@ -9,18 +9,127 @@
 
 using namespace std;
 
+void randomizeData(int workers, int speed, int *workerSpeeds,
+                   int jobs, int cycles, int *jobCycles, int orders, int *jobOrders,
+                   int  *assignments);
+
+int getWorst(string *chromosomes, int countChrs,
+             int jobs, int workers, int orders,
+             int *workerSpeeds, int *jobCycles, int *allWorkerTimes);
+
+int bestFitness(string *chromosomes, int countChrs,
+             int jobs, int workers, int orders,
+             int *workerSpeeds, int *jobCycles, int *allWorkerTimes);
+
+void replaceWorst(  string *chromosomes, int countChrs, string newChrs,
+                    int jobs, int workers, int orders,
+                    int *workerSpeeds, int *jobCycles, int *allWorkerTimes);
+
 int main(){
     srand(NULL);
 
-    int jobs = 9;       ///< keep at one digit
+    int jobs = 5;       ///< keep at one digit
     int cycles = 50;
-    int orders = 9;     ///< keep at one digit
-    int workers = 9;    ///< keep at one digit
+    int orders = 3;     ///< keep at one digit
+    int workers = 2;    ///< keep at one digit
     int speed = 10;
 
     int jobCycles[jobs];
     int jobOrders[jobs];
     int workerSpeeds[workers];
+
+    int assignments[jobs][workers];
+    int allWorkerTimes[workers];
+
+    WorkersJobsChrs chrs;
+
+    int countChrs = 9;
+    string chromosomes[countChrs];
+
+    for(int i = 0; i < countChrs; i++){
+        randomizeData(workers, speed, workerSpeeds, jobs, cycles, jobCycles, orders, jobOrders, (int *)assignments);
+        chromosomes[i] = chrs.chromosomeMaker(jobs, workers, (int *)assignments);
+        chrs.processData(jobs, workers, orders, chromosomes[i], workerSpeeds, jobCycles, allWorkerTimes);
+        cout << chrs.getFitness(workers, allWorkerTimes) << endl;
+    }
+    cout << endl;
+
+    string offspring;
+
+    for (int i = 0; i < 10; i++){
+        offspring = chrs.crossOver(chromosomes, countChrs, workers*jobs);
+        chrs.processData(jobs, workers, orders, offspring, workerSpeeds, jobCycles, allWorkerTimes);
+        //cout << chrs.getFitness(workers, allWorkerTimes) << endl;
+
+        int worst = getWorst(chromosomes, countChrs, jobs, workers, orders, workerSpeeds, jobCycles, allWorkerTimes);
+        chrs.processData(jobs, workers, orders, chromosomes[worst], workerSpeeds, jobCycles, allWorkerTimes);
+
+        replaceWorst(chromosomes, countChrs, offspring, jobs, workers, orders, workerSpeeds, jobCycles, allWorkerTimes);
+    }
+
+    for(int i = 0; i < countChrs; i++){
+        chrs.processData(jobs, workers, orders, chromosomes[i], workerSpeeds, jobCycles, allWorkerTimes);
+        cout << chrs.getFitness(workers, allWorkerTimes) << endl;
+    }
+
+    return 0;
+}
+int bestFitness( string *chromosomes, int countChrs,
+                 int jobs, int workers, int orders,
+                 int *workerSpeeds, int *jobCycles, int *allWorkerTimes) {
+    int best;
+    int lastBestFitness = 0;
+    WorkersJobsChrs chrs;
+    for(int i = 0; i < countChrs; i++){
+        chrs.processData(jobs, workers, orders, chromosomes[i], workerSpeeds, jobCycles, allWorkerTimes);
+        //cout << chrs.getFitness(workers, allWorkerTimes) << endl;
+        if (lastBestFitness > chrs.getFitness(workers, allWorkerTimes)){
+            best = i;
+            lastBestFitness = chrs.getFitness(workers, allWorkerTimes);
+        }
+    }
+
+    return lastBestFitness;
+}
+
+void replaceWorst(  string *chromosomes, int countChrs, string newChrs,
+                    int jobs, int workers, int orders,
+                    int *workerSpeeds, int *jobCycles, int *allWorkerTimes){
+    int worst = getWorst(chromosomes, countChrs, jobs, workers, orders,
+                         workerSpeeds, jobCycles, allWorkerTimes);
+
+    WorkersJobsChrs chrs;
+    chrs.processData(jobs, workers, orders, chromosomes[worst], workerSpeeds, jobCycles, allWorkerTimes);
+    int worstFitness = chrs.getFitness(workers, allWorkerTimes);
+
+    chrs.processData(jobs, workers, orders, newChrs, workerSpeeds, jobCycles, allWorkerTimes);
+    if(chrs.getFitness(workers, allWorkerTimes) < worstFitness){
+        chromosomes[worst] = newChrs;
+    }
+}
+
+int getWorst(string *chromosomes, int countChrs,
+             int jobs, int workers, int orders,
+             int *workerSpeeds, int *jobCycles, int *allWorkerTimes){
+    int worst;
+    int lastWorstFitness = 0;
+    WorkersJobsChrs chrs;
+    for(int i = 0; i < countChrs; i++){
+        chrs.processData(jobs, workers, orders, chromosomes[i], workerSpeeds, jobCycles, allWorkerTimes);
+        //cout << chrs.getFitness(workers, allWorkerTimes) << endl;
+        if (lastWorstFitness < chrs.getFitness(workers, allWorkerTimes)){
+            worst = i;
+            lastWorstFitness = chrs.getFitness(workers, allWorkerTimes);
+        }
+    }
+
+    return worst;
+}
+
+void randomizeData(int workers, int speed, int *workerSpeeds, int jobs, int cycles, int *jobCycles, int orders, int *jobOrders, int  *assignments){
+    int remainingWork;
+    int index = 0;
+    int currentWorker = rand()%workers;
 
     for(int i = 0; i < jobs; i++){
         jobCycles[i] = 0;
@@ -36,36 +145,30 @@ int main(){
         chrs.getData(jobs, cycles, orders, workers, speed, jobCycles, jobOrders, workerSpeeds);
     }
 
-    int index = 0;
-    int currentWorker = rand()%workers;
-    int assignments[jobs][workers];
-    int remainingWork;
-
     for(int i = 0; i < jobs; i++){
-        //cout << i << ": " << jobOrders[i] << endl;
         for(int j = 0; j < workers; j++){
-            assignments[i][j] = 0;
+            *((assignments+i*workers) + j) = 0;
         }
     }
-    //cout << endl;
+
     while(index<jobs){
 
         int tooManyLoops = workers;
         remainingWork = jobOrders[index];
 
-        while(assignments[index][currentWorker]>0 && tooManyLoops >=0){
+        while(*((assignments+index*workers) + currentWorker) >0 && tooManyLoops >=0){
             currentWorker = rand()%workers;
             tooManyLoops--;
         }
 
         if (true){
-            assignments[index][currentWorker] = rand()%remainingWork;
-            remainingWork-=assignments[index][currentWorker];
+            *((assignments+index*workers) + currentWorker) = rand()%remainingWork;
+            remainingWork -= *((assignments+index*workers) + currentWorker);
         }
 
         while(remainingWork > 0){
             currentWorker = rand()%workers;
-            assignments[index][currentWorker] += 1;
+            *((assignments+index*workers) + currentWorker) += 1;
             remainingWork--;
         }
 
@@ -73,182 +176,4 @@ int main(){
             index++;
         }
     }
-    for(int i = 0; i < jobs; i++){
-        for(int j = 0; j < workers; j++){
-            cout    << "Worker " << j+1 << "'s assignments to job " << i+1 << ": "
-                    << assignments[i][j] << "/" << jobOrders[i]<< endl;
-        }
-        cout << endl;
-    }
-/*
-*/
-    WorkersJobsChrs chrs;
-    string outStr = "";
-    for(int i = 0; i < jobs; i++){
-        for(int j = 0; j < workers; j++){
-            if(chrs.digitCounter(j)<chrs.digitCounter(jobs)){
-                for(int n = 0; n < chrs.digitCounter(jobs)-chrs.digitCounter(j); n++)//notintegers...
-                {
-                    outStr+="0";
-                }
-            }
-            outStr+= chrs.intToString(j);
-            if(chrs.digitCounter(i)<chrs.digitCounter(workers)){
-                for(int n = 0; n < chrs.digitCounter(workers)-chrs.digitCounter(i); n++)//notintegers...
-                {
-                    outStr+="0";
-                }
-            }
-            outStr+= chrs.intToString(i);
-            if(assignments[i][j]  == 0){
-                outStr += "0";
-            }
-            if(assignments[i][j]!=0){
-                outStr+= chrs.intToString(assignments[i][j]);
-            }
-        }
-    }
-/*
-*/
-    int workerLength = chrs.digitCounter(jobs) + chrs.digitCounter(workers) + chrs.digitCounter(orders);
-
-    for(int i = 0; i< workers; i++){
-        cout <<"Worker " << i << " speed: " << workerSpeeds[i] << endl;
-    }
-    cout << endl << outStr << endl;
-
-    int info[workers*jobs][3];
-    for(int i = 0; i < workers*jobs; i++){
-        string str = "";
-        index = 0;
-        for(int k = 0; k < chrs.digitCounter(workers); k++){
-            //cout << outStr[k+i*workerLength];
-            str +=outStr[k+i*workerLength];
-        }
-        string s = str;
-        str = "";
-        for(int j = 1; j <= chrs.digitCounter(workers); j ++){
-            str += s[chrs.digitCounter(workers)-j];
-        }
-        index = chrs.stringToInt(str);
-        info[i][0] = workerSpeeds[index];
-        //cout << endl;
-
-        str = "";
-        index = 0;
-        for(int k = 0; k < chrs.digitCounter(jobs); k++){
-            //cout << outStr[k+i*workerLength + chrs.digitCounter(workers)];
-            str += outStr[k+i*workerLength + chrs.digitCounter(workers)];
-        }
-        s = str;
-        str = "";
-        for(int j = 1; j <= chrs.digitCounter(workers); j ++){
-            str += s[chrs.digitCounter(workers)-j];
-        }
-        index = chrs.stringToInt(str);
-        info[i][1] = jobCycles[index];
-        //cout << endl;
-
-        str = "";
-        for(int k = 0; k < chrs.digitCounter(orders); k++){
-            //cout << outStr[k+i*workerLength + chrs.digitCounter(workers) + chrs.digitCounter(jobs)];
-            str += outStr[k+i*workerLength + chrs.digitCounter(workers) + chrs.digitCounter(jobs)];
-        }
-        s = str;
-        str = "";
-        for(int j = 1; j <= chrs.digitCounter(workers); j ++){
-            str += s[chrs.digitCounter(workers)-j];
-        }
-        index = chrs.stringToInt(str);
-        info[i][2] = index;
-
-
-/*
-        cout << info[i][0] << "\t" << info[i][1] << "\t"  << info[i][2] << endl;
-
-    int info[workers*jobs][3];
-    for(int i = 0; i < workers*jobs; i++){
-        for(int j = 0; j < workerLength; j++){
-            string str = "";
-            index = 0;
-            for(int k = 0; k < chrs.digitCounter(workers); k++){
-                int tenPow = pow(10, chrs.digitCounter(workers) - k);
-                str += outStr[k+i*workerLength];
-                index += tenPow * chrs.stringToInt(str);
-                info[i][0] = workerSpeeds[index];
-            }
-            cout << "Speed of worker " << index << ": " << workerSpeeds[index] << endl;
-
-            str = "";
-            index = 0;
-            for(int k = 0; k < chrs.digitCounter(jobs); k++){
-                int tenPow = pow(10, chrs.digitCounter(workers) - k);
-                str += outStr[k+i*workerLength+chrs.digitCounter(workers)];
-                index += tenPow * chrs.stringToInt(str);
-                info[i][1] = jobCycles[index];
-            }
-            cout << "Cycles for job " << index << ": " << jobCycles[index] << endl;
-
-
-            str = "";
-            for(int k = 0; k < chrs.digitCounter(orders); k++){
-                int tenPow = pow(10, chrs.digitCounter(workers) - k);
-                str += outStr[k+i*workerLength+chrs.digitCounter(jobs)+chrs.digitCounter(workers)];
-                //index += tenPow * chrs.stringToInt(str);
-                info[i][2] = index;
-            }
-            cout << "Orders for job " << index << ": " << jobOrders[index] << endl << endl;
-
-        }
-
-        cout    << info[i][0] << " " << info[i][1] << " "  << info[i][2] << " = "
-                << info[i][0]*info[i][1]*info[i][2] << endl;
-*/
-    }
-    cout << endl;
-
-    int allWorkerTimes[workers];
-    for(int i = 0; i < workers; i++){
-        allWorkerTimes[i] = 0;
-    }
-
-    for(int i = 0; i < jobs*workers-1; i++){
-        for(int j = 0; j < workers; j++){
-            allWorkerTimes[j] += info[i][0]*info[i][1]*info[i][2];
-/*
-            cout << i << ": " << info[i][0]<< " " <<info[i][1]<< " " <<info[i][2] << " = "
-                 << info[i][0]*info[i][1]*info[i][2] << endl;
-            cout << "Worker " << j << ": " << allWorkerTimes[j] << endl;
-*/
-            i++;
-        }
-        i--;
-        //cout << endl;
-    }
-
-    int greatest = 0;
-    for(int i = 0; i < workers; i++){
-        cout << "Worker " << i << " time: " << allWorkerTimes[i] << endl;
-        if (i == 0 || allWorkerTimes[i] > allWorkerTimes[greatest]){
-            greatest = i;
-        }
-    }
-    cout << "\nWorker " << greatest << "'s time is " << allWorkerTimes[greatest] << endl;
-    cout << endl;
-/*
-    int workerTimes[workers];
-    for(int i = 0; i < workers; i++){
-        workerTimes[i] = 0;
-    }
-
-    for(int i = 0; i < outStr.length(); i+=workerLength){
-        workerTimes[chrs.stringToInt(outStr[i])]    += workerSpeeds[chrs.stringToInt(outStr[i])]
-                                                    *  jobCycles[chrs.stringToInt(outStr[i+1])]
-                                                    *  chrs.stringToInt(outStr[i+2]);
-    }
-
-    for(int i = 0; i < workers; i++){
-        cout << i << ": " << workerTimes[i] << endl;
-    }
-*/
 }

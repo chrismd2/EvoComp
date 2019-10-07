@@ -13,6 +13,11 @@ using namespace std;
 class WorkersJobsChrs {
 private:
 public:
+    string chromosomeMaker(int jobs, int workers, int *assignments);
+    string crossOver(string *chromosomes, int countChrs, int lengthChrs);
+    int getFitness(int workers, int *allWorkerTimes);
+    void processData(int jobs, int workers, int orders, string chromosome,
+                     int *workerSpeeds, int *jobCycles, int *allWorkerTimes);
     int digitCounter(int);
     string intToString(int);
     int stringToInt(string);

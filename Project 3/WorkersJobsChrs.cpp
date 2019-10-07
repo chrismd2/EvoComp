@@ -13,6 +13,119 @@
 
 using namespace std;
 
+string WorkersJobsChrs::crossOver(string *chromosomes, int countChrs, int lengthChrs){
+    string returnString = "";
+    int point = rand()%lengthChrs;
+    for(int i = 0; i < countChrs; i++){
+        for(int j = point; j > 0; j--){
+            returnString += chromosomes[i][point - j];
+        }
+        int n = rand()%(lengthChrs - point);
+        point += n;
+    }
+    return returnString;
+}
+
+int WorkersJobsChrs::getFitness(int workers, int *allWorkerTimes){
+    int greatest = 0;
+    for(int i = 0; i < workers; i++){
+        //cout << "Worker " << i << " time: " << allWorkerTimes[i] << endl;
+        if (i == 0 || allWorkerTimes[i] > allWorkerTimes[greatest]){
+            greatest = i;
+        }
+    }
+
+    return allWorkerTimes[greatest];
+}
+
+void WorkersJobsChrs::processData(int jobs, int workers, int orders, string chromosome,
+                                  int *workerSpeeds, int *jobCycles, int *allWorkerTimes){
+    int workerLength = digitCounter(jobs) + digitCounter(workers) + digitCounter(orders);
+    string outStr = chromosome;
+
+    int info[workers*jobs][3];
+    int index;
+    for(int i = 0; i < workers*jobs; i++){
+        string str = "";
+        index = 0;
+        for(int k = 0; k < digitCounter(workers); k++){
+            str +=outStr[k+i*workerLength];
+        }
+        string s = str;
+        str = "";
+        for(int j = 1; j <= digitCounter(workers); j ++){
+            str += s[digitCounter(workers)-j];
+        }
+        index = stringToInt(str);
+        info[i][0] = workerSpeeds[index];
+
+        str = "";
+        index = 0;
+        for(int k = 0; k < digitCounter(jobs); k++){
+            str += outStr[k+i*workerLength + digitCounter(workers)];
+        }
+        s = str;
+        str = "";
+        for(int j = 1; j <= digitCounter(workers); j ++){
+            str += s[digitCounter(workers)-j];
+        }
+        index = stringToInt(str);
+        info[i][1] = jobCycles[index];
+
+        str = "";
+        for(int k = 0; k < digitCounter(orders); k++){
+            str += outStr[k+i*workerLength + digitCounter(workers) + digitCounter(jobs)];
+        }
+        s = str;
+        str = "";
+        for(int j = 1; j <= digitCounter(workers); j ++){
+            str += s[digitCounter(workers)-j];
+        }
+        index = stringToInt(str);
+        info[i][2] = index;
+    }
+
+    for(int i = 0; i < workers; i++){
+        allWorkerTimes[i] = 0;
+    }
+
+    for(int i = 0; i < jobs*workers-1; i++){
+        for(int j = 0; j < workers; j++){
+            allWorkerTimes[j] += info[i][0]*info[i][1]*info[i][2];
+            i++;
+        }
+        i--;
+    }
+}
+
+string WorkersJobsChrs::chromosomeMaker(int jobs, int workers, int *assignments){
+    string outStr;
+    for(int i = 0; i < jobs; i++){
+        for(int j = 0; j < workers; j++){
+            if(digitCounter(j)<digitCounter(jobs)){
+                for(int n = 0; n < digitCounter(jobs)-digitCounter(j); n++)//notintegers...
+                {
+                    outStr+="0";
+                }
+            }
+            outStr+= intToString(j);
+            if(digitCounter(i)<digitCounter(workers)){
+                for(int n = 0; n < digitCounter(workers)-digitCounter(i); n++)//notintegers...
+                {
+                    outStr+="0";
+                }
+            }
+            outStr+= intToString(i);
+            if(*((assignments+i*workers) + j)  == 0){
+                outStr += "0";
+            }
+            if(*((assignments+i*workers) + j)!=0){
+                outStr+= intToString(*((assignments+i*workers) + j));
+            }
+        }
+    }
+    return outStr;
+}
 int WorkersJobsChrs::digitCounter(int _num){
 	int b = 0;
 	int c = pow(10, b);

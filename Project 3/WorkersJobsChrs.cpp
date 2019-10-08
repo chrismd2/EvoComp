@@ -92,6 +92,9 @@ void WorkersJobsChrs::processData(int jobs, int workers, int orders, string chro
     for(int i = 0; i < jobs*workers-1; i++){
         for(int j = 0; j < workers; j++){
             allWorkerTimes[j] += info[i][0]*info[i][1]*info[i][2];
+            if(allWorkerTimes[j] == 0){
+                //allWorkerTimes[j] = 99999;
+            }
             i++;
         }
         i--;

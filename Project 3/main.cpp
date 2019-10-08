@@ -56,7 +56,10 @@ int main(){
 
     string offspring;
 
-    for (int i = 0; i < 10; i++){
+    int lastFitness = 0;
+    int tripped = 0;
+    while (bestFitness(chromosomes, countChrs, jobs, workers, orders, workerSpeeds, jobCycles, allWorkerTimes) != lastFitness || tripped < 10){
+        lastFitness = bestFitness(chromosomes, countChrs, jobs, workers, orders, workerSpeeds, jobCycles, allWorkerTimes);
         offspring = chrs.crossOver(chromosomes, countChrs, workers*jobs);
         chrs.processData(jobs, workers, orders, offspring, workerSpeeds, jobCycles, allWorkerTimes);
         //cout << chrs.getFitness(workers, allWorkerTimes) << endl;
@@ -65,6 +68,9 @@ int main(){
         chrs.processData(jobs, workers, orders, chromosomes[worst], workerSpeeds, jobCycles, allWorkerTimes);
 
         replaceWorst(chromosomes, countChrs, offspring, jobs, workers, orders, workerSpeeds, jobCycles, allWorkerTimes);
+        if (bestFitness(chromosomes, countChrs, jobs, workers, orders, workerSpeeds, jobCycles, allWorkerTimes) == lastFitness){
+            tripped++;
+        }
     }
 
     for(int i = 0; i < countChrs; i++){
@@ -72,13 +78,15 @@ int main(){
         cout << chrs.getFitness(workers, allWorkerTimes) << endl;
     }
 
+    //cout << bestFitness(chromosomes, countChrs, jobs, workers, orders, workerSpeeds, jobCycles, allWorkerTimes);
+
     return 0;
 }
 int bestFitness( string *chromosomes, int countChrs,
                  int jobs, int workers, int orders,
                  int *workerSpeeds, int *jobCycles, int *allWorkerTimes) {
     int best;
-    int lastBestFitness = 0;
+    int lastBestFitness = 9999999;
     WorkersJobsChrs chrs;
     for(int i = 0; i < countChrs; i++){
         chrs.processData(jobs, workers, orders, chromosomes[i], workerSpeeds, jobCycles, allWorkerTimes);
